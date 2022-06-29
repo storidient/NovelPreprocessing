@@ -7,7 +7,7 @@ ep_pattern_dict = {
     'N. 제목 ': '^[^“"].*[0-9]+\. ?[^가-힣0-9%]+.*',
 }
 
-ep_pattern_dict['키워드'] = ''.join(
+ep_pattern_dict['키워드'] = '|'.join(
     ['.*%s ?[^가-힣]+.*|.*%s$' % (x, x) for x in ['에필로그', '프롤로그', '본편','prologue']]
 )
 
