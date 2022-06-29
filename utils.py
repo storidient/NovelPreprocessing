@@ -2,12 +2,26 @@ from pathlib import Path
 import logging, re, argparse
 from cached_property import cached_property
 from boltons.iterutils import pairwise
+from attrs import define
 
+@define
+class Rx:
+  target : str
+  outcome : str
+  level : int
+
+@define
+class B:
+  open: str
+  close : str
+
+    
 def download(dir):
   """Gets the directory of the file and returns the text"""
   with open(dir,  mode='rt', encoding='utf-8') as f:
     text = f.readlines()
   return list(map(lambda x : x.replace('\n', '').replace(u'\xa0', u' ').strip(), text))
+
 
 class RxLogging:
   """Gets the logger and monitors the process"""
