@@ -148,54 +148,9 @@ class RxSetting:
     output += [self.letter[key] for key in self._exclude(self.letter.keys())]
     output += [self.bracket[key].open + self.bracket[key].close
                for key in self._exclude(self.bracket, self.excluded_bracket)] 
-    
     output += [self.pattern[key].outcome for key in self.pattern if key.startswith('unify_')] 
     return '[^%s]' % (''.join(set(output)))
   
-  def _exclude(self, whole_keys : List[str], minus_keys : Optional[List[str]]):
+  def _exclude(self, whole_keys : List[str], minus_keys : Optional[List[str]]) -> List[str]:
     minus_keys = self.pattern.keys() if minus_keys == None else minus_keys
-    return set(whole_keys) - set(minus_keys)
-
-  
-class RxRevision(RxLogging):
-  """Gets the revising patterns and revise the text"""
-  def __init__(self, logger, pattern):
-    super().__init__(logger)
-    self.pattern = pattern
-    
-  def ordering(self, keys):
-    """Re-orders the revising rules by the level"""
-    return sorted(keys, key = lambda x : self.pattern[x].level)
-
-  def update_pattern(self, text):
-    """Adds 「」『』 marks as quotation marks if there is no " in the text"""
-    text = ''.join(text) if type(text) == list else text
-    
-    if re.match('.*["“”].*', text):
-      self.pattern.pop('alternative_quotation', None)
-
-    elif re.match('.*[「」『』].*', text):
-      self.pattern.update({'alternative_quotation' : Rx('[「」『』]', '"', 0)})
-      self.logger.info('Quotation_updated : 「」『』')
-    
-    elif re.match('.*[<>].*', text):
-      self.pattern.update({'alternative_quotation' : Rx('[<>]', '"', 0)})
-      self.logger.info('Quotation_updated : <>')
-   
-  def apply(self, key : str, input : str):
-    """Applies the revsing rules to the line"""
-    pattern = self.pattern[key]
-    output = re.sub(pattern.target, pattern.outcome, input)
-    if input != output:
-      self.print(key,'pattern : %s / before %s / after %s' %(key, input, output))              
-    return output
-
-  def main(self, text):
-    """Revises the text"""
-    self.update_pattern(text)
-    keys = self.ordering(self.pattern.keys())
-    
-    for key in keys:
-      text = list(map(lambda x : self.apply(key, x), text))
-      
-    return [x for x in map(lambda line : re.sub(' +', ' ', line).strip(), text) if len(x) > 0]
+    return list(set(whole_keys) - set(minus_keys))
