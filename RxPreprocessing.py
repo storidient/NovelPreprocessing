@@ -80,98 +80,66 @@ class RxDivision(RxLogging):
       return [x for x in output if len(x) > 0]
 
 
-class RxSetting(RxLogging):
-  """Gets the revising rules and patterns easily
-   
-   Args:
-    letter : Korean, imperfect Korean letters(e.g. ㅋㅋㅋ), English, Chinese, Numbers ...
-    bracket -> (), <>, [], {}, ...
-    unify -> other special marks to unify (e.g. -, ...)
+class RxSetting:
+  """Gets the revising rules and patterns easily"""
+  def __init__(self, default : bool):
+    from scripts import (default_dict, 
+                         letter_dict, 
+                         bracket_dict, 
+                         unify_dict)
+    
+    self.pattern = default_dict if default == True else dict()
+    self.letter_dict = letter_dict
+    self.bracket_dict = bracket_dict
+    self.unify_dict = unify_dict
+
+    self.excluded_bracket = list()
+
+  def update_letter(self, key_list : List[str]):
+    """Gets the letters to delete and updates the revising rules"""
+    self.pattern.update(
+        {key : Rx('[%s]' % (self.letter_dict[key]), '', 1) for key in keys}
+        )
   
-  """
-  def __init__(self, logger,
-               letter : dict = None, 
-               bracket : dict = None, 
-               unify : dict = None,
-               default : bool = True):
-    
-    RxLogging.__init__(self, logger)
-    
-    self.pattern, self.excluded_bracket = dict(), list()
-    self.letter, self.bracket, self.unify = letter, bracket, unify
-    
-    self.basic_marks = ['\.', '\!', '\?', ' ', ',', '\-', '⋯', '"', "'"] #TODO
-
-    if default == True: #TODO
-      from scripts import default_dict
-      self.pattern.update(default_dict)
-
-    if letter == None: #TODO
-      from scripts import letter_dict
-      self.letter = letter_dict
-    
-    if bracket == None: #TODO
-      from scripts import bracket_dict
-      self.bracket = bracket_dict
-
-    if unify == None: #TODO
-      from scripts import unify_dict
-      self.unify = unify_dict
-
-  def update_letter(self, keys):
-    """Gets the letter type to delete and updates the revising rules"""
-    keys = self.check([x.lower() for x in keys], self.letter)
-    self.pattern.update({key : Rx('[%s]' % (self.letter[key]), '', 1) for key in keys})
-  
-  def update_bracket(self, target_keys, outcome_key : str):
+  def update_bracket(self, input_key : List[str], output_key: str):
     """Gets the brackets to revise and updates the revising rules"""
-    targets = self.check(target_keys, self.bracket)  
-    
-    t_open = '|'.join([self.bracket[t].open for t in targets])
-    t_close = '|'.join([self.bracket[t].close for t in targets])
-    
-    if outcome_key in self.bracket:
-      self.pattern.update({
-        'bracket_open' : Rx(t_open, self.bracket[outcome_key].open, 2),
-        'bracket_close' : Rx(t_close, self.bracket[outcome_key].close, 2)
-        })  
-    else:
-      self.logger.warning('The outcome key is not defined')
-      
-    self.excluded_bracket = targets #save the brackets to exclude  
-    self.update_empty_bracket()
-  
-  def update_unify(self, keys):
-    """Gets the special marks to unify and updates the revising rules"""
-    if keys == 'all':
-      self.pattern.update(self.unify)    
-    else:
+    self.excluded_bracket = input_key
+
+    for key in input_key:
       self.pattern.update(
-        {key : self.unify[key] for key in self.check(keys, self.unify)}
-      )
+          {key + '_open' :  Rx(self.bracket[key].open, 
+                              self.bracket[output_key].open, 2),
+          key + '_close' : Rx(self.bracket[key].close,
+                              self.bracket[output_key].open, 2)})
+    self._empty_bracket()
   
-  def update_empty_bracket(self):
+  def _empty_bracket(self):
     """Makes rules to delete empty brackets e.g. (), <> ..."""
     remain_keys = set(self.bracket.keys()) - set(self.excluded_bracket)
-    
     for key in remain_keys:
       self.pattern.update(
-        {'empty_'+ key : Rx('%s[^%s%s]*%s' % (self.bracket[key].open,
-                                            ''.join(self.letter.values()),
-                                            self.bracket[key].close,
-                                            self.bracket[key].close), '', 100)}
+          {'empty_'+ key : Rx('%s[^%s]*%s' % (self.bracket[key].open,
+                                              self.bracket[key].close,
+                                              self.bracket[key].close), '', 100)}
+                          )
+  
+  def update_unify(self, keys : Optional[List[str]]):
+    """Gets the special marks to unify and updates the revising rules"""
+    keys = self.unify() if keys == None else keys
+    self.pattern.update(
+        {'unify_' + key : self.unify[key] for key in self.check(keys, self.unify)}
       )
   
-  def check_marks(self, add_marks : list = None, default: bool = True) -> str:
+  @cached_property
+  def check(self) -> str:
     """Returns the RxPattern to check if lines have unexpected special marks"""
-    output = add_marks if add_marks != None else list()
+    output = ['\.', '\?', '\!', ' ', ',']
     
     output += [self.letter[key] for key in self._exclude(self.letter.keys())]
     output += [self.bracket[key].open + self.bracket[key].close
                for key in self._exclude(self.bracket, self.excluded_bracket)] 
     
-    if default == True:
-      output += self.basic_marks   
+    output += [self.pattern[key].outcome for key in self.pattern if key.startswith('unify_')] 
     return '[^%s]' % (''.join(set(output)))
   
   def _exclude(self, whole_keys, minus_keys = None):
@@ -221,3 +189,4 @@ class RxRevision(RxLogging):
       text = list(map(lambda x : self.apply(key, x), text))
       
     return [x for x in map(lambda line : re.sub(' +', ' ', line).strip(), text) if len(x) > 0]
+    
