@@ -58,11 +58,11 @@ class RxDivision(RxLogging):
     self.pattern, self.ep, self.scene = dict(), ep_pattern, scene_pattern
 
     if ep_pattern == None:
-      from data.scripts import ep_pattern_dict
+      from scripts import ep_pattern_dict
       self.ep = ep_pattern_dict
     
     if scene_pattern == None:
-      from data.scripts import scene_pattern_dict
+      from scripts import scene_pattern_dict
       self.scene = scene_pattern_dict
   
   def match(self, key, line):
@@ -116,19 +116,19 @@ class RxSetting(RxLogging):
     self.basic_marks = ['\.', '\!', '\?', ' ', ',', '\-', '⋯', '"', "'"] #TODO
 
     if default == True: #TODO
-      from data.scripts import default_dict
+      from scripts import default_dict
       self.pattern.update(default_dict)
 
     if letter == None: #TODO
-      from data.scripts import letter_dict
+      from scripts import letter_dict
       self.letter = letter_dict
     
     if bracket == None: #TODO
-      from data.scripts import bracket_dict
+      from scripts import bracket_dict
       self.bracket = bracket_dict
 
     if unify == None: #TODO
-      from data.scripts import unify_dict
+      from scripts import unify_dict
       self.unify = unify_dict
 
   def update_letter(self, keys):
