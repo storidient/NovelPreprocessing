@@ -154,3 +154,29 @@ class RxSetting:
   def _exclude(self, whole_keys : List[str], minus_keys : Optional[List[str]]) -> List[str]:
     minus_keys = self.pattern.keys() if minus_keys == None else minus_keys
     return list(set(whole_keys) - set(minus_keys))
+
+
+class RxRevision(RxSetting):
+  """Gets the revising patterns and revise the text"""
+  def __init__(self, args):
+    RxSetting.__init__(self, args)
+    
+  def ordering(self, keys):
+    """Re-orders the revising rules by the level"""
+    return sorted(keys, key = lambda x : self.pattern[x].level)
+
+  def apply(self, key : str, input : str):
+    """Applies the revising rule to the string"""
+    pattern = self.pattern[key]
+    output = re.sub(pattern.target, pattern.outcome, input)
+    if input != output:
+      self.print(key,'pattern : %s / before %s / after %s' %(key, input, output))              
+    return output
+
+  def main(self, text : List[str]):
+    """Revises the text"""
+    self.update_pattern(text)
+    keys = self.ordering(self.pattern.keys())
+    for key in keys:
+      text = list(map(self.apply, text))
+    return [x for x in map(lambda line : re.sub(' +', ' ', line).strip(), text) if len(x) > 0]
