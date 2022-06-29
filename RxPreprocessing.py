@@ -40,7 +40,46 @@ class RxLogging:
       self.logger.warning('Undefined key : %s' % ('/'.join(undefined)))
     return list(set(keys)- set(undefined))
 
+
+class RxDivision(RxLogging):
+  """Divides the episodes and scenes"""
+  def __init__(self, logger, ep_pattern : Optional[Dict[str, str]] = None, 
+               scene_pattern : Optional[Dict[str, str]] = None):
+    RxLogging.__init__(self, logger)
+    self.pattern = dict()
+    self.ep, self.scene = ep_pattern, scene_pattern
+
+    if ep_pattern == None:
+      from scripts import ep_pattern_dict
+      self.ep = ep_pattern_dict
+    if scene_pattern == None:
+      from scripts import scene_pattern_dict
+      self.scene = scene_pattern_dict
   
+  def match(self, line : str) -> bool:
+    """Returns True if the line matches with the pattern"""
+    for key in self.pattern.keys():
+      if re.match(self.pattern[key], line.lower()):
+        self.print(key, 'seperation_pattern : %s / line : %s' % (key,line))
+        return True      
+      else: pass
+    return False
+      
+  def main(self, text : List[str], scene : bool = False) -> List[str]:
+    """Divides the text into episodes"""
+    self.pattern = self.ep if scene == False else self.scene
+    indices = [0] + [idx for idx, line in enumerate(text) if self.match(line) == True]
+    
+    if len(indices) == 1:
+      return [text]
+   
+    else:
+      output = [text[:s2] if (s1 == 0 and indices.count(0) == 1) else text[s1+1:s2] 
+                for s1, s2 in pairwise(sorted(indices))]
+      output.append(text[max(indices)+1:])  
+      return [x for x in output if len(x) > 0]
+
+
 class RxSetting(RxLogging):
   """Gets the revising rules and patterns easily
    
