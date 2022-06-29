@@ -191,5 +191,5 @@ class RxRevision(RxSetting):
     self.update_pattern(''.join(text))
     keys = self.ordering(self.pattern.keys())
     for key in keys:
-      text = list(map(self.apply, text))
+      text = list(map(lambda x: self.apply(key, x), text))
     return [x for x in map(lambda line : re.sub(' +', ' ', line).strip(), text) if len(x) > 0]
