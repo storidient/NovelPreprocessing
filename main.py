@@ -35,9 +35,8 @@ class RxLogging:
     """Prints the message if the key is in the show_key list"""
     self.logger.info(message) if key in self.show_key else self.logger.debug(message)
   
-  def check(self, keys : List[str], pattern: Dict[str, str]) -> List[str]:
+  def check(self, keys : Iterable[str], pattern: Dict[str, str]) -> List[str]:
     """Checks if the keys are in the pattern dictionary"""
-    keys = keys if type(keys) == list else [keys]
     undefined = [key for key in keys if key not in pattern]
     if len(undefined):
       self.logger.warning('Undefined key : %s' % ('/'.join(undefined)))
