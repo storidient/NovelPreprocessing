@@ -165,7 +165,7 @@ class RxSetting(RxLogging):
   
   def _exclude(self, 
                whole_keys : List[str], 
-               minus_keys : Optional[List[str]]) -> List[str]:
+               minus_keys : Optional[List[str]] = None) -> List[str]:
     minus_keys = self.pattern.keys() if minus_keys == None else minus_keys
     return list(set(whole_keys) - set(minus_keys))
 
