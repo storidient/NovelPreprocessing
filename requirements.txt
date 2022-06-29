@@ -1,0 +1,6 @@
+git-python
+konlpy
+pandas
+beautifulsoup4
+boltons
+requests
