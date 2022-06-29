@@ -159,7 +159,7 @@ class RxSetting:
 class RxRevision(RxSetting):
   """Gets the revising patterns and revise the text"""
   def __init__(self, args):
-    RxSetting.__init__(self, args)
+    super().__init__(self, args)
     
   def ordering(self, keys):
     """Re-orders the revising rules by the level"""
