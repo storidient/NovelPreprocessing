@@ -89,11 +89,6 @@ class RxSetting(RxLogging):
                         letter_dict, 
                         bracket_dict, 
                         unify_dict)
-  
-  default = default_dict
-  letter = letter_dict
-  bracket = bracket_dict
-  unify = unify_dict
 
   def __init__(self, args):
     super().__init__(args.logger)
@@ -105,23 +100,23 @@ class RxSetting(RxLogging):
 
   def update_letter(self, key_list : List[str]):
     """Gets the letters to delete and updates the revising rules"""
-    keys = self.check(key_list, self.letter)
+    keys = self.check(key_list, self.letter_dict)
     self.pattern.update(
-        {key : Rx('[%s]' % (self.letter[key]), '', 1) for key in keys}
+        {key : Rx('[%s]' % (self.letter_dict[key]), '', 1) for key in keys}
         )
   
   def update_bracket(self, input_key : List[str], output_key: str):
     """Gets the brackets to revise and updates the revising rules"""
-    keys = self.check(input_key, self.bracket)
+    keys = self.check(input_key, self.bracket_dict)
     self.excluded_bracket = input_key
 
     if output_key in self.bracket:
       for key in keys:
         self.pattern.update(
-            {key + '_open' :  Rx(self.bracket[key].open, 
-                                self.bracket[output_key].open, 2),
-            key + '_close' : Rx(self.bracket[key].close,
-                                self.bracket[output_key].open, 2)})
+            {key + '_open' :  Rx(self.bracket_dict[key].open, 
+                                self.bracket_dict[output_key].open, 2),
+            key + '_close' : Rx(self.bracket_dict[key].close,
+                                self.bracket_dict[output_key].open, 2)})
       self._empty_bracket()
     
     else:
@@ -129,19 +124,19 @@ class RxSetting(RxLogging):
   
   def _empty_bracket(self):
     """Makes rules to delete empty brackets e.g. (), <> ..."""
-    remain_keys = set(self.bracket.keys()) - set(self.excluded_bracket)
+    remain_keys = set(self.bracket_dict.keys()) - set(self.excluded_bracket)
     for key in remain_keys:
       self.pattern.update(
-          {'empty_'+ key : Rx('%s[^%s]*%s' % (self.bracket[key].open,
-                                              self.bracket[key].close,
-                                              self.bracket[key].close), '', 100)}
+          {'empty_'+ key : Rx('%s[^%s]*%s' % (self.bracket_dict[key].open,
+                                              self.bracket_dict[key].close,
+                                              self.bracket_dict[key].close), '', 100)}
                           )
   
   def update_unify(self, keys : Optional[List[str]]):
     """Gets the special marks to unify and updates the revising rules"""
-    keys = self.unify() if keys == None else keys
+    keys = self.unify_dict.keys() if keys == None else keys
     self.pattern.update(
-        {'unify_' + key : self.unify[key] for key in self.check(keys, self.unify)}
+        {'unify_' + key : self.unify_dict[key] for key in self.check(keys, self.unify_dict)}
       )
   
   def update_pattern(self, text : str):
@@ -161,10 +156,11 @@ class RxSetting(RxLogging):
   def check(self) -> str:
     """Returns the RxPattern to check if lines have unexpected special marks"""
     output = ['\.', '\?', '\!', ' ', ',']
-    output += [self.letter[key] for key in self._exclude(self.letter.keys())]
-    output += [self.bracket[key].open + self.bracket[key].close
-               for key in self._exclude(self.bracket, self.excluded_bracket)] 
-    output += [self.pattern[key].outcome for key in self.pattern if key.startswith('unify_')] 
+    output += [self.letter_dict[key] for key in self._exclude(self.letter_dict.keys())]
+    output += [self.bracket_dict[key].open + self.bracket_dict[key].close
+               for key in self._exclude(self.bracket_dict, self.excluded_bracket)] 
+    output += [self.pattern[key].outcome.lstrip('[').rstrip(']') 
+               for key in self.pattern if key.startswith('unify_')] 
     return '[^%s]' % (''.join(set(output)))
   
   def _exclude(self, 
