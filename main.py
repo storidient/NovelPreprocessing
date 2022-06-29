@@ -80,38 +80,49 @@ class RxDivision(RxLogging):
       return [x for x in output if len(x) > 0]
 
 
-class RxSetting:
+class RxSetting(RxLogging):
   """Gets the revising rules and patterns easily"""
-  def __init__(self, default : bool):
-    from scripts import (default_dict, 
-                         letter_dict, 
-                         bracket_dict, 
-                         unify_dict)
-    
-    self.pattern = default_dict if default == True else dict()
-    self.letter_dict = letter_dict
-    self.bracket_dict = bracket_dict
-    self.unify_dict = unify_dict
+  from scripts import (default_dict, 
+                        letter_dict, 
+                        bracket_dict, 
+                        unify_dict)
+  
+  default = default_dict
+  letter = letter_dict
+  bracket = bracket_dict
+  unify = unify_dict
 
+  def __init__(self, args):
+    super().__init__(args.logger)
+    self.pattern = self.default_dict if args.default == True else dict()
     self.excluded_bracket = list()
+    self.update_letter(args.letter_key)
+    self.update_bracket(args.bracket_input, args.bracket_output)
+    self.update_unify(args.unify)
 
   def update_letter(self, key_list : List[str]):
     """Gets the letters to delete and updates the revising rules"""
+    keys = self.check(key_list, self.letter)
     self.pattern.update(
-        {key : Rx('[%s]' % (self.letter_dict[key]), '', 1) for key in keys}
+        {key : Rx('[%s]' % (self.letter[key]), '', 1) for key in keys}
         )
   
   def update_bracket(self, input_key : List[str], output_key: str):
     """Gets the brackets to revise and updates the revising rules"""
+    keys = self.check(input_key, self.bracket)
     self.excluded_bracket = input_key
 
-    for key in input_key:
-      self.pattern.update(
-          {key + '_open' :  Rx(self.bracket[key].open, 
-                              self.bracket[output_key].open, 2),
-          key + '_close' : Rx(self.bracket[key].close,
-                              self.bracket[output_key].open, 2)})
-    self._empty_bracket()
+    if output_key in self.bracket:
+      for key in keys:
+        self.pattern.update(
+            {key + '_open' :  Rx(self.bracket[key].open, 
+                                self.bracket[output_key].open, 2),
+            key + '_close' : Rx(self.bracket[key].close,
+                                self.bracket[output_key].open, 2)})
+      self._empty_bracket()
+    
+    else:
+      self.logger.info('THe output bracket is not defined %s' % (output_key))
   
   def _empty_bracket(self):
     """Makes rules to delete empty brackets e.g. (), <> ..."""
@@ -131,27 +142,31 @@ class RxSetting:
       )
   
   def update_pattern(self, text : str):
+    """Gets the text and updates the revising rules"""
     if re.match('.*["“”].*', text):
       self.pattern.pop('alternative_quotation', None)
 
     elif re.match('.*[「」『』].*', text):
       self.pattern.update({'alternative_quotation' : Rx('[「」『』]', '"', 0)})
+      self.logger.info('Quotation marks are updated : 「」『』')
     
     elif re.match('.*[<>].*', text):
       self.pattern.update({'alternative_quotation' : Rx('[<>]', '"', 0)})
+      self.logger.info('Quotation marks are updated : <>')
   
   @cached_property
   def check(self) -> str:
     """Returns the RxPattern to check if lines have unexpected special marks"""
     output = ['\.', '\?', '\!', ' ', ',']
-    
     output += [self.letter[key] for key in self._exclude(self.letter.keys())]
     output += [self.bracket[key].open + self.bracket[key].close
                for key in self._exclude(self.bracket, self.excluded_bracket)] 
     output += [self.pattern[key].outcome for key in self.pattern if key.startswith('unify_')] 
     return '[^%s]' % (''.join(set(output)))
   
-  def _exclude(self, whole_keys : List[str], minus_keys : Optional[List[str]]) -> List[str]:
+  def _exclude(self, 
+               whole_keys : List[str], 
+               minus_keys : Optional[List[str]]) -> List[str]:
     minus_keys = self.pattern.keys() if minus_keys == None else minus_keys
     return list(set(whole_keys) - set(minus_keys))
 
