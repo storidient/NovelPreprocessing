@@ -153,7 +153,7 @@ class RxSetting(RxLogging):
       self.logger.info('Quotation marks are updated : <>')
   
   @cached_property
-  def check(self) -> str:
+  def final_check(self) -> str:
     """Returns the RxPattern to check if lines have unexpected special marks"""
     output = ['\.', '\?', '\!', ' ', ',']
     output += [self.letter_dict[key] for key in self._exclude(self.letter_dict.keys())]
