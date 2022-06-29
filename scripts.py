@@ -8,9 +8,7 @@ ep_pattern_dict = {
 }
 
 ep_pattern_dict['키워드'] = ''.join(
-    ['.*%s ?[^가-힣]+.*|.*%s$' % (x, x) for x in ['에필로그',
-                                                '프롤로그', 
-                                                '본편']]
+    ['.*%s ?[^가-힣]+.*|.*%s$' % (x, x) for x in ['에필로그', '프롤로그', '본편','prologue']]
 )
 
 scene_pattern_dict = {
