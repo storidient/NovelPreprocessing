@@ -2,7 +2,7 @@ import logging
 import argparse
 import re
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Iterable
 from boltons.iterutils import pairwise
 from utils import Rx, B
 from cached_property import cached_property
