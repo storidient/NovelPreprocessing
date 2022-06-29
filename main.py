@@ -18,7 +18,7 @@ def download(dir : str) -> List[str]:
   """Gets the directory of the file and returns the text"""
   with open(dir,  mode='rt', encoding='utf-8') as f:
     text = f.readlines()
-  return list(map(clean_txt, text))
+  return [x for x in map(clean_txt, text)) if len(x) > 0]
 
 
 class RxLogging:
