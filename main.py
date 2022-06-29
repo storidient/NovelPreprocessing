@@ -188,7 +188,7 @@ class RxRevision(RxSetting):
 
   def main(self, text : List[str]):
     """Revises the text"""
-    self.update_pattern(text)
+    self.update_pattern(''.join(text))
     keys = self.ordering(self.pattern.keys())
     for key in keys:
       text = list(map(self.apply, text))
