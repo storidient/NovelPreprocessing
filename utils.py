@@ -3,17 +3,7 @@ import logging, re, argparse
 from cached_property import cached_property
 from boltons.iterutils import pairwise
 from attrs import define
-
-@define
-class Rx:
-  target : str
-  outcome : str
-  level : int
-
-@define
-class B:
-  open: str
-  close : str
+from utils import Rx, B
 
     
 def download(dir):
