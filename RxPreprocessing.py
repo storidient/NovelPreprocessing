@@ -130,6 +130,16 @@ class RxSetting:
         {'unify_' + key : self.unify[key] for key in self.check(keys, self.unify)}
       )
   
+  def update_pattern(self, text : str):
+    if re.match('.*["“”].*', text):
+      self.pattern.pop('alternative_quotation', None)
+
+    elif re.match('.*[「」『』].*', text):
+      self.pattern.update({'alternative_quotation' : Rx('[「」『』]', '"', 0)})
+    
+    elif re.match('.*[<>].*', text):
+      self.pattern.update({'alternative_quotation' : Rx('[<>]', '"', 0)})
+  
   @cached_property
   def check(self) -> str:
     """Returns the RxPattern to check if lines have unexpected special marks"""
@@ -189,4 +199,3 @@ class RxRevision(RxLogging):
       text = list(map(lambda x : self.apply(key, x), text))
       
     return [x for x in map(lambda line : re.sub(' +', ' ', line).strip(), text) if len(x) > 0]
-    
