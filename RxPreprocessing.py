@@ -142,7 +142,7 @@ class RxSetting:
     output += [self.pattern[key].outcome for key in self.pattern if key.startswith('unify_')] 
     return '[^%s]' % (''.join(set(output)))
   
-  def _exclude(self, whole_keys, minus_keys = None):
+  def _exclude(self, whole_keys : List[str], minus_keys : Optional[List[str]]):
     minus_keys = self.pattern.keys() if minus_keys == None else minus_keys
     return set(whole_keys) - set(minus_keys)
 
