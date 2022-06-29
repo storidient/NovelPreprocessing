@@ -2,7 +2,6 @@ from pathlib import Path
 import logging, re, argparse
 from cached_property import cached_property
 from boltons.iterutils import pairwise
-from attrs import define
 from utils import Rx, B
 
     
