@@ -56,7 +56,7 @@ class RxDivision(RxLogging):
   
   def match(self, key, line):
     """Returns True if the line matches with the pattern"""
-    if re.match(self.pattern[key], line):
+    if re.match(self.pattern[key], line.lower()):
       self.print(key, 'seperation_pattern : %s / line : %s' % (key,line))
       return True
     else:
