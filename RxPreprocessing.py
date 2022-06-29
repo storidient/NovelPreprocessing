@@ -5,11 +5,17 @@ from boltons.iterutils import pairwise
 from utils import Rx, B
 
     
-def download(dir):
+
+def clean_txt(line : str):
+  """clean a string"""
+  return line.replace('\n', '').replace(u'\xa0', u' ').strip()
+
+
+def download(dir : str) -> List[str]:
   """Gets the directory of the file and returns the text"""
   with open(dir,  mode='rt', encoding='utf-8') as f:
     text = f.readlines()
-  return list(map(lambda x : x.replace('\n', '').replace(u'\xa0', u' ').strip(), text))
+  return list(map(clean_txt, text))
 
 
 class RxLogging:
@@ -26,60 +32,13 @@ class RxLogging:
     """Prints the message if the key is in the show_key list"""
     self.logger.info(message) if key in self.show_key else self.logger.debug(message)
   
-  def check(self, keys, pattern):
+  def check(self, keys : List[str], pattern: Dict[str, str]) -> List[str]:
     """Checks if the keys are in the pattern dictionary"""
     keys = keys if type(keys) == list else [keys]
     undefined = [key for key in keys if key not in pattern]
-
     if len(undefined):
       self.logger.warning('Undefined key : %s' % ('/'.join(undefined)))
-
     return list(set(keys)- set(undefined))
-
-
-class RxDivision(RxLogging):
-  """Divides the episodes and scenes"""
-  def __init__(self, logger, 
-               ep_pattern : dict = None,
-               scene_pattern : dict = None):
-    
-    RxLogging.__init__(self, logger)
-    self.pattern, self.ep, self.scene = dict(), ep_pattern, scene_pattern
-
-    if ep_pattern == None:
-      from scripts import ep_pattern_dict
-      self.ep = ep_pattern_dict
-    
-    if scene_pattern == None:
-      from scripts import scene_pattern_dict
-      self.scene = scene_pattern_dict
-  
-  def match(self, key, line):
-    """Returns True if the line matches with the pattern"""
-    if re.match(self.pattern[key], line.lower()):
-      self.print(key, 'seperation_pattern : %s / line : %s' % (key,line))
-      return True
-    else:
-      return False
-    
-  def get_idx(self, key, text):
-    return [idx for idx, line in enumerate(text) if self.match(key, line) == True]
-      
-  def main(self, text, scene = False):
-    """Divides the text into episodes"""
-    self.pattern = self.ep if scene == False else self.scene
-    
-    indices = list(map(lambda key : self.get_idx(key, text), self.pattern.keys()))
-    indices = set(sum(indices, []))
-    
-    if len(indices) == 0:
-      return [text]
-   
-    else:
-      indices = [0] + sorted(list(indices))
-      output = [text[:s2] if (s1 == 0 and indices.count(0) == 1) else text[s1+1:s2] for s1, s2 in pairwise(indices)]
-      output.append(text[max(indices)+1:])
-      return [x for x in output if len(x) > 0]
 
   
 class RxSetting(RxLogging):
