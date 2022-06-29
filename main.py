@@ -110,7 +110,7 @@ class RxSetting(RxLogging):
     keys = self.check(input_key, self.bracket_dict)
     self.excluded_bracket = input_key
 
-    if output_key in self.bracket:
+    if output_key in self.bracket_dict:
       for key in keys:
         self.pattern.update(
             {key + '_open' :  Rx(self.bracket_dict[key].open, 
