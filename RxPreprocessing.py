@@ -1,6 +1,6 @@
 from pathlib import Path
 import logging, re, argparse
-from cached_property import cached_property
+from typing import List, Dict, Optional
 from boltons.iterutils import pairwise
 from utils import Rx, B
 
