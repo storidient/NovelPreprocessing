@@ -46,9 +46,9 @@ class RxLogging:
 
 class RxDivision(RxLogging):
   """Divides the episodes and scenes"""
-  def __init__(self, logger, ep_pattern : Optional[Dict[str, str]] = None, 
-               scene_pattern : Optional[Dict[str, str]] = None):
-    RxLogging.__init__(self, logger)
+  def __init__(self, logger, ep_pattern : Optional[Dict[str, str]] = None, #TODO
+               scene_pattern : Optional[Dict[str, str]] = None): #TODO
+    super().__init__(logger)
     self.pattern = dict()
     self.ep, self.scene = ep_pattern, scene_pattern
 
@@ -173,7 +173,7 @@ class RxSetting(RxLogging):
 class RxRevision(RxSetting):
   """Gets the revising patterns and revise the text"""
   def __init__(self, args):
-    super().__init__(self, args)
+    super().__init__(args)
     
   def ordering(self, keys):
     """Re-orders the revising rules by the level"""
